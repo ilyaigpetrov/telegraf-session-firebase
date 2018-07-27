@@ -1,19 +1,20 @@
 module.exports = (sessionRef, opts) => {
   const options = Object.assign({
     property: 'session',
-    getSessionKey: (ctx) => ctx.from && ctx.chat && `${ctx.from.id}/${ctx.chat.id}`
+    getSessionKey: (ctx) => ctx.from && ctx.chat && `${ctx.from.id}-${ctx.chat.id}`
   }, opts)
 
   function getSession (key) {
-    return sessionRef.child(key).once('value')
-      .then((snapshot) => snapshot.val())
+    return sessionRef.doc(key).get()
+      .then((snapshot) => snapshot.data())
   }
 
   function saveSession (key, session) {
+
     if (!session || Object.keys(session).length === 0) {
-      return sessionRef.child(key).remove()
+      return sessionRef.doc(key).remove()
     }
-    return sessionRef.child(key).update(session)
+    return sessionRef.doc(key).set(session, { merge: true })
   }
 
   return (ctx, next) => {
